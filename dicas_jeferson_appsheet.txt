@@ -1,0 +1,5 @@
+-em data validity vc faz o filtro:
+
+FILTER(Situacao_Cad, [Atividade]=[_THISROW].[Atividade])
+
+-para sumir com a coluna vc precisa ir em view, coloca na column order e adiciona a coluna na ordem certa, ai clica no olhinho dela e coloca a expressão

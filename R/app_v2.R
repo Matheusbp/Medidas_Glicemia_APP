@@ -1,11 +1,12 @@
 library('shiny')
-library('DT')
 library('xlsx')
 library("tidyverse")
 library("lubridate")
 library("shinyTime")
 library("gsheet")
 library("scales")
+library("shinyWidgets")
+library("echarts4r")
 
 #Read google sheets data into R
 #autenticando
@@ -25,99 +26,175 @@ tabela$Gramas_Carbo <- tabela$Gramas_Carbo |> as.numeric()
 tabela$Hora <- format(as.POSIXct(tabela$Hora), format = "%H:%M")
 tabela$DataHora = as.POSIXct(paste(tabela$Dia, tabela$Hora), format = "%d/%m/%Y %H:%M")
 
-ui <- fluidPage(
-    titlePanel("Medições de Glicemia"),
-    sidebarLayout(
-        sidebarPanel(
-        ),
-        mainPanel(
-            plotOutput("glucose_plot"),
-            dataTableOutput("glucose_table")
+
+################# UI
+
+sidebar <- dashboardSidebar(
+    sidebarMenu(
+        dateRangeInput('daterange',
+                       label = paste("Escolha o período para ter os dados"),
+                       start = Sys.Date()-30, end = Sys.Date(),
+                       min = "20/07/2023", max = Sys.Date(),
+                       separator = " - ", format = "dd/mm/yyyy", 
+                       language = "pt"
+                       ),
+        pickerInput(
+            inputId = "periodo",
+            label = "Escolha o período de análise", 
+            choices = c("Todos", unique(tabela$Periodo)),
+            selected = "Todos",
+            options = list(
+                title = "This is a placeholder")
         )
     )
 )
 
+body <- dashboardBody(
+    
+        fluidRow(
+            # Dynamic valueBoxes
+            valueBoxOutput("mean_medida"),#, icon = icon("fa-solid fa-align-center")),
+            valueBoxOutput("max_medida"),#, icon = icon("fa-solid fa-arrow-up-long")),
+            valueBoxOutput("min_medida")#, icon = icon("fa-solid fa-arrow-down-long"))
+        ),
+        
+        fluidRow(
+            
+            echarts4rOutput("plot_medidas"),
+            echarts4rOutput("plot_insulinas")
+            # echarts4rOutput("plot_ambos")
+            
+        )
+    )
+
+
+# Put them together into a dashboardPage
+ui <- dashboardPage(
+    dashboardHeader(title = "Medidas App"),
+    sidebar,
+    body
+)
+
+
 server <- function(input, output, session) {
     
-    # Reactive values to store data
-    data <- reactiveValues(table = data.frame())
-    plot_data <- tabela
     
-    # plot_data$DataHora <- format(plot_data$DataHora,format='%Y%m%d %H:%M')
-    # Update the plot
-    output$glucose_plot <- renderPlot({
-        # plot_data <- data$table
-        # plot_data$DataHora <- as.POSIXct(paste(plot_data$Dia, plot_data$Hora), format = "%Y/%m/%d %H:%M")
+    media_medida <- tabela$Glicemia |> mean(na.rm = T) |> round(0)
+    min_medida <- tabela$Glicemia |> min(na.rm = T) |> round(0)
+    max_medida <- tabela$Glicemia |> max(na.rm = T) |> round(0)
+    
+    event_trigger <- reactive({
+        list(input$daterange, input$periodo)
+    })
+    
+    observeEvent(event_trigger(), {
+    
+        # Reactive values to store data
+        # Pegando o período correto
         
-        # terei dados de glicemia e insulinas separados
-        df_glicemia <- plot_data |> filter(Tipo == "Medida")
-        df_insulina <- plot_data |> filter(Tipo == "Alimentação/Aplicação")
+        if(input$periodo == "Todos"){
+            dado <- tabela
+        }else{
+            dado <- tabela |> filter(Periodo == input$periodo)    
+        }
+        #filtrando pelo daterange
+        dado <- dado |> filter(input$daterange[1] <= DataHora &
+                                   DataHora <= input$daterange[2])
         
-        #para pinntar o fundo
-        d = data.frame(x = seq(from = min(plot_data$DataHora), 
-                               by = "1 hour", 
-                               to = max(plot_data$DataHora)), y = 1)
-        d$hour = as.numeric(format(d$x, "%H"))
-        d$dia = as.numeric(format(d$x, "%d"))
+        #dados para o dash
+        media_medida <- dado$Glicemia |> mean(na.rm = T) |> round(0)
+        min_medida <- dado$Glicemia |> min(na.rm = T) |> round(0)
+        max_medida <- dado$Glicemia |> max(na.rm = T) |> round(0)
         
-        dias <- d |> filter(hour == 0)
-        ggplot() +
-            geom_line(data = df_glicemia, aes(x = DataHora, y = Glicemia, color = "Glicemia"),
-                      linewidth = 1) +
-
-            geom_col(data = df_insulina, aes(x = DataHora,y = Humalog, fill = "Humalog"),
-                     position = position_nudge(x = -0.1)) +
-
-            geom_col(data = df_insulina, aes(x = DataHora, y = Tresiba, fill = "Tresiba"),
-                     position = position_nudge(x = 0.1)) +
-            
-            scale_fill_manual(values = c(Humalog = "#1f77b4", Tresiba = "#ff7f0e")) +
-            scale_color_manual(values = c(Glicemia = "#1f77b4")) +
-
-            #Here is where I format the x-axis
-            geom_vline(xintercept = dias$x)+
-            scale_x_datetime(labels = date_format("%Y-%m-%d %H"),
-                             date_breaks = "1 day") +
-            #pintando o fundo
-            # geom_rect(data = d, aes(xmin = min(x), xmax = max(x), ymin = -Inf, ymax = Inf,
-            #               fill = hour_shade))
-
-            labs(
-                x = "Data e Hora",
-                y = "Valores",
-                color = NULL,
-                fill = NULL
-            ) +
-            # theme_minimal() +
-            theme(
-                legend.position = "top",
-                axis.text.x = element_text(angle = 45, hjust = 1)
+        ##### pegando os boxes do dashboard
+        output$mean_medida <- renderValueBox({
+            valueBox(
+                paste0(media_medida), "Média", icon = icon("glyphicon-resize-horizontal", lib = "glyphicon"),
+                color = ifelse(media_medida <= 120, "blue", "maroon")
             )
-        p
+        })
         
-        dias = data.frame(x = seq(from = min(plot_data$DataHora), 
-                               by = "1 day", 
-                               to = max(plot_data$DataHora)), y=1)
-        library(echarts4r)
-          e_charts(df_glicemia, DataHora) |>
-          e_area(data = df_glicemia, Glicemia) |>
-          e_mark_line(data = list(xAxis = df_glicemia$DataHora |> unique())) |>
-          e_labels() |>
-          e_mark_line(data = list(yAxis = 120), title = "Meta") |>
-          e_mark_line(data = list(yAxis = 60), title = "Hipo") |>
-              e_datazoom(x_index = c(0, 1)) # add data zoom for for x axis
-          
-          
-          
-          e_bar(Glicemia) |>
-          e_labels() |>
-          e_title("Line and area charts")
-    })
-    
-    # Display the data table
-    output$glucose_table <- renderDataTable({
-        datatable(data$table, options = list(lengthMenu = c(5, 10, 15), pageLength = 5))
-    })
+        output$max_medida <- renderValueBox({
+            valueBox(
+                paste0(max_medida), "Valor máximo \n do período", icon = icon("glyphicon-arrow-up", lib = "glyphicon"),
+                color = "red"
+            )
+        })
+        
+        output$min_medida <- renderValueBox({
+            valueBox(
+                paste0(min_medida), "Valor mínimo \n do período", icon = icon("glyphicon-arrow-down", lib = "glyphicon"),
+                color = "aqua"
+            )
+        })
+        
+        ##### plotando os dados
+        
+        # print(input$daterange[1])
+        # print(data$DataHora)
+        plot_data <- dado
+        
+        # plot_data$DataHora <- format(plot_data$DataHora,format='%Y%m%d %H:%M')
+        # Update the plot
+        
+            # plot_data <- data$table
+            # plot_data$DataHora <- as.POSIXct(paste(plot_data$Dia, plot_data$Hora), format = "%Y/%m/%d %H:%M")
+            
+            # terei dados de glicemia e insulinas separados
+            df_glicemia <- plot_data |> filter(Tipo == "Medida")
+            df_insulina <- plot_data |> filter(Tipo == "Alimentação/Aplicação")
+            
+
+            #fazendo os plots
+            
+            #ambos
+            # plot_data |> 
+            #     e_charts(DataHora) |> 
+            #     e_area(Glicemia) |> 
+            #     e_labels() |>
+            #     e_bar(Humalog, x_index = 1, y_index = 1) |>
+            #     e_labels() |>
+            #     e_bar(Tresiba, x_index = 1, y_index = 1) |>
+            #     e_legend_unselect("Tresiba") |>
+            #     e_bar(Gramas_Carbo, x_index = 1, y_index = 1) |>
+            #     e_legend_unselect("Gramas_Carbo") |>
+            #     e_grid(height = "35%") |> 
+            #     e_grid(height = "35%", top = "50%") |>
+            #     e_y_axis(gridIndex = 1) |> # put x and y on grid index 1
+            #     e_x_axis(gridIndex = 1)
+            
+            
+            output$plot_medidas <- renderEcharts4r({
+            e_charts(df_glicemia, DataHora) |>
+              e_area(data = df_glicemia, Glicemia) |>
+              e_mark_line(data = list(xAxis = df_glicemia$DataHora |> unique())) |>
+              e_labels() |>
+              e_mark_line(data = list(yAxis = 120), title = "Meta") |>
+              e_mark_line(data = list(yAxis = 60), title = "Hipo") |>
+                    e_title("Glicemia")
+                
+                  # e_datazoom(x_index = c(0, 1)) # add data zoom for for x axis
+
+            })
+            output$plot_insulinas <- renderEcharts4r({
+
+            e_charts(df_insulina, DataHora) |>
+              e_bar(data = df_insulina, Humalog) |>
+                e_labels() |>
+                e_bar(data = df_insulina, Tresiba) |>
+                e_legend_unselect("Tresiba") |>
+                e_bar(data = df_insulina, Gramas_Carbo) |>
+                e_legend_unselect("Gramas_Carbo") |>
+
+              e_title("Insulina Aplicada & \n Carboidratos ingeridos")
+            })
+        })
+        
+        # Display the data table
+        output$glucose_table <- renderDataTable({
+            datatable(data$table, options = list(lengthMenu = c(5, 10, 15), pageLength = 5))
+        })
+
 }
 
 shinyApp(ui, server)
