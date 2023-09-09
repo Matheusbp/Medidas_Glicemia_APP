@@ -9,8 +9,50 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-    fluidPage(
-      h1("app")
+    sidebar <- dashboardSidebar(
+      sidebarMenu(
+        dateRangeInput('daterange',
+                       label = paste("Escolha o período para ter os dados"),
+                       start = Sys.Date()-30, end = Sys.Date(),
+                       min = "20/07/2023", max = Sys.Date(),
+                       separator = " - ", format = "dd/mm/yyyy", 
+                       language = "pt"
+        ),
+        pickerInput(
+          inputId = "periodo",
+          label = "Escolha o período de análise", 
+          choices = c("Todos", unique(tabela$Periodo)),
+          selected = "Todos",
+          options = list(
+            title = "This is a placeholder")
+        )
+      )
+    ),
+    
+    body <- dashboardBody(
+      
+      fluidRow(
+        # Dynamic valueBoxes
+        valueBoxOutput("mean_medida"),#, icon = icon("fa-solid fa-align-center")),
+        valueBoxOutput("max_medida"),#, icon = icon("fa-solid fa-arrow-up-long")),
+        valueBoxOutput("min_medida")#, icon = icon("fa-solid fa-arrow-down-long"))
+      ),
+      
+      fluidRow(
+        
+        echarts4rOutput("plot_medidas"),
+        echarts4rOutput("plot_insulinas")
+        # echarts4rOutput("plot_ambos")
+        
+      )
+    ),
+    
+    
+    # Put them together into a dashboardPage
+    ui <- dashboardPage(
+      dashboardHeader(title = "Medidas App"),
+      sidebar,
+      body
     )
   )
 }

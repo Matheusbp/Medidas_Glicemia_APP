@@ -78,7 +78,7 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
     
-    
+    #aux to give initial data values
     media_medida <- tabela$Glicemia |> mean(na.rm = T) |> round(0)
     min_medida <- tabela$Glicemia |> min(na.rm = T) |> round(0)
     max_medida <- tabela$Glicemia |> max(na.rm = T) |> round(0)
@@ -134,67 +134,57 @@ server <- function(input, output, session) {
         # print(data$DataHora)
         plot_data <- dado
         
-        # plot_data$DataHora <- format(plot_data$DataHora,format='%Y%m%d %H:%M')
-        # Update the plot
         
-            # plot_data <- data$table
-            # plot_data$DataHora <- as.POSIXct(paste(plot_data$Dia, plot_data$Hora), format = "%Y/%m/%d %H:%M")
-            
-            # terei dados de glicemia e insulinas separados
-            df_glicemia <- plot_data |> filter(Tipo == "Medida")
-            df_insulina <- plot_data |> filter(Tipo == "Alimentação/Aplicação")
-            
-
-            #fazendo os plots
-            
-            #ambos
-            # plot_data |> 
-            #     e_charts(DataHora) |> 
-            #     e_area(Glicemia) |> 
-            #     e_labels() |>
-            #     e_bar(Humalog, x_index = 1, y_index = 1) |>
-            #     e_labels() |>
-            #     e_bar(Tresiba, x_index = 1, y_index = 1) |>
-            #     e_legend_unselect("Tresiba") |>
-            #     e_bar(Gramas_Carbo, x_index = 1, y_index = 1) |>
-            #     e_legend_unselect("Gramas_Carbo") |>
-            #     e_grid(height = "35%") |> 
-            #     e_grid(height = "35%", top = "50%") |>
-            #     e_y_axis(gridIndex = 1) |> # put x and y on grid index 1
-            #     e_x_axis(gridIndex = 1)
-            
-            
-            output$plot_medidas <- renderEcharts4r({
-            e_charts(df_glicemia, DataHora) |>
-              e_area(data = df_glicemia, Glicemia) |>
-              e_mark_line(data = list(xAxis = df_glicemia$DataHora |> unique())) |>
-              e_labels() |>
-              e_mark_line(data = list(yAxis = 120), title = "Meta") |>
-              e_mark_line(data = list(yAxis = 60), title = "Hipo") |>
-                    e_title("Glicemia")
-                
-                  # e_datazoom(x_index = c(0, 1)) # add data zoom for for x axis
-
-            })
-            output$plot_insulinas <- renderEcharts4r({
-
-            e_charts(df_insulina, DataHora) |>
-              e_bar(data = df_insulina, Humalog) |>
-                e_labels() |>
-                e_bar(data = df_insulina, Tresiba) |>
-                e_legend_unselect("Tresiba") |>
-                e_bar(data = df_insulina, Gramas_Carbo) |>
-                e_legend_unselect("Gramas_Carbo") |>
-
-              e_title("Insulina Aplicada & \n Carboidratos ingeridos")
-            })
-        })
+        # terei dados de glicemia e insulinas separados
+        df_glicemia <- plot_data |> filter(Tipo == "Medida")
+        df_insulina <- plot_data |> filter(Tipo == "Alimentação/Aplicação")
         
-        # Display the data table
-        output$glucose_table <- renderDataTable({
-            datatable(data$table, options = list(lengthMenu = c(5, 10, 15), pageLength = 5))
-        })
 
+        #fazendo os plots
+        
+        #ambos
+        # plot_data |> 
+        #     e_charts(DataHora) |> 
+        #     e_area(Glicemia) |> 
+        #     e_labels() |>
+        #     e_bar(Humalog, x_index = 1, y_index = 1) |>
+        #     e_labels() |>
+        #     e_bar(Tresiba, x_index = 1, y_index = 1) |>
+        #     e_legend_unselect("Tresiba") |>
+        #     e_bar(Gramas_Carbo, x_index = 1, y_index = 1) |>
+        #     e_legend_unselect("Gramas_Carbo") |>
+        #     e_grid(height = "35%") |> 
+        #     e_grid(height = "35%", top = "50%") |>
+        #     e_y_axis(gridIndex = 1) |> # put x and y on grid index 1
+        #     e_x_axis(gridIndex = 1)
+        
+        
+        output$plot_medidas <- renderEcharts4r({
+        e_charts(df_glicemia, DataHora) |>
+          e_area(data = df_glicemia, Glicemia) |>
+          e_mark_line(data = list(xAxis = df_glicemia$DataHora |> unique())) |>
+          e_labels() |>
+          e_mark_line(data = list(yAxis = 120), title = "Meta") |>
+          e_mark_line(data = list(yAxis = 60), title = "Hipo") |>
+                e_title("Glicemia")
+            
+              # e_datazoom(x_index = c(0, 1)) # add data zoom for for x axis
+
+        })
+        output$plot_insulinas <- renderEcharts4r({
+
+        e_charts(df_insulina, DataHora) |>
+          e_bar(data = df_insulina, Humalog) |>
+            e_labels() |>
+            e_bar(data = df_insulina, Tresiba) |>
+            e_legend_unselect("Tresiba") |>
+            e_bar(data = df_insulina, Gramas_Carbo) |>
+            e_legend_unselect("Gramas_Carbo") |>
+
+          e_title("Insulina Aplicada & \n Carboidratos ingeridos")
+        })
+    })
+    
 }
 
 shinyApp(ui, server)
