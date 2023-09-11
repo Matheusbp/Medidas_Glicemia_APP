@@ -13,6 +13,7 @@ app_server <- function(input, output, session) {
   library("scales")
   library("shinyWidgets")
   library("echarts4r")
+  library("shinydashboard")
   
   #pegando tabela com pacote gsheet
   url<- construct_download_url(url = 'https://docs.google.com/spreadsheets/d/1QqYHWXl4KzhZmHQyzddeWCT6yXC9aHMtYOmPGV-nzEw/edit?usp=sharing', format = "csv", sheetid = NULL)

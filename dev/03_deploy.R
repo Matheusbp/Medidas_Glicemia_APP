@@ -24,7 +24,8 @@ devtools::check()
 ## This will build a tar.gz that can be installed locally,
 ## sent to CRAN, or to a package manager
 devtools::build()
-
+# renv::install(packages = "./deploy/MedidasGlicemia_0.0.0.9000.tar.gz")
+remotes::install_local("./deploy/MedidasGlicemia_0.0.0.9000.tar.gz",upgrade="never", dependencies = "./renv.lock")
 ## RStudio ----
 
 ## Docker ----

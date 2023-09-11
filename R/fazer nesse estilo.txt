@@ -1,5 +1,0 @@
-https://medium.com/@dutta.shankhadeep/create-professional-dashboards-no-web-development-skills-required-bda28cb54a60
-
-https://focusonr.org/blog/dockerize_compose/?utm_medium=email&utm_source=newsletter&utm_campaign=rshiny-weekly-newsletter
-
-Vou criar uma instancia na lightsail e criar um docker compose com todos os meus dockers la

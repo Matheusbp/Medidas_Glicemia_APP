@@ -5,12 +5,34 @@
 #' @import shiny
 #' @noRd
 app_ui <- function(request) {
+  library('shiny')
+  library("tidyverse")
+  library("lubridate")
+  library("shinyTime")
+  library("gsheet")
+  library("scales")
+  library("shinyWidgets")
+  library("echarts4r")
+  library("shinydashboard")
+  
+  #pegando tabela com pacote gsheet
+  url<- construct_download_url(url = 'https://docs.google.com/spreadsheets/d/1QqYHWXl4KzhZmHQyzddeWCT6yXC9aHMtYOmPGV-nzEw/edit?usp=sharing', format = "csv", sheetid = NULL)
+  
+  tabela <- gsheet2tbl(url, sheetid = NULL) |> tibble()
+  
+  
+  tabela$Glicemia <- tabela$Glicemia |> as.numeric()
+  tabela$Gramas_Carbo <- tabela$Gramas_Carbo |> as.numeric()
+  
+  tabela$Hora <- format(as.POSIXct(tabela$Hora), format = "%H:%M")
+  tabela$DataHora = as.POSIXct(paste(tabela$Dia, tabela$Hora), format = "%d/%m/%Y %H:%M")
+  
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-    sidebar <- dashboardSidebar(
-      sidebarMenu(
+    sidebar <- shinydashboard::dashboardSidebar(
+      shinydashboard::sidebarMenu(
         dateRangeInput('daterange',
                        label = paste("Escolha o período para ter os dados"),
                        start = Sys.Date()-30, end = Sys.Date(),
@@ -18,7 +40,7 @@ app_ui <- function(request) {
                        separator = " - ", format = "dd/mm/yyyy", 
                        language = "pt"
         ),
-        pickerInput(
+        shinyWidgets::pickerInput(
           inputId = "periodo",
           label = "Escolha o período de análise", 
           choices = c("Todos", unique(tabela$Periodo)),
@@ -29,19 +51,19 @@ app_ui <- function(request) {
       )
     ),
     
-    body <- dashboardBody(
+    body <- shinydashboard::dashboardBody(
       
       fluidRow(
         # Dynamic valueBoxes
-        valueBoxOutput("mean_medida"),#, icon = icon("fa-solid fa-align-center")),
-        valueBoxOutput("max_medida"),#, icon = icon("fa-solid fa-arrow-up-long")),
-        valueBoxOutput("min_medida")#, icon = icon("fa-solid fa-arrow-down-long"))
+        shinydashboard::valueBoxOutput("mean_medida"),#, icon = icon("fa-solid fa-align-center")),
+        shinydashboard::valueBoxOutput("max_medida"),#, icon = icon("fa-solid fa-arrow-up-long")),
+        shinydashboard::valueBoxOutput("min_medida")#, icon = icon("fa-solid fa-arrow-down-long"))
       ),
       
       fluidRow(
         
-        echarts4rOutput("plot_medidas"),
-        echarts4rOutput("plot_insulinas")
+        echarts4r::echarts4rOutput("plot_medidas"),
+        echarts4r::echarts4rOutput("plot_insulinas")
         # echarts4rOutput("plot_ambos")
         
       )
