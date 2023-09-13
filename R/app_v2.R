@@ -185,21 +185,28 @@ server <- function(input, output, session) {
 
         e_charts(df_insulina, DataHora) |>
           e_bar(data = df_insulina, Humalog) |>
-            e_labels() |>
-            e_bar(serie =  Tresiba) |>
-            e_legend_unselect("Tresiba") |>
             e_bar(serie = Gramas_Carbo) |>
-            e_legend_unselect("Gramas_Carbo") |>
-            e_tooltip(trigger = "axis") |>
+            e_bar(serie =  Tresiba) |>
+            e_labels() |>
+            # e_tooltip(trigger = "axis") |>
             # e_theme("bee-inspired")|>
-            e_add_nested('extra', Periodo) |>
-            e_add_nested('extra', Alimentos) |>
-            e_tooltip(
+            e_add_nested('extra', Periodo, Alimentos) |>
+            # e_add_nested('extra', Alimentos) |>
+            e_tooltip(axisPointer = list(
+              type = "cross",
+              trigger = "axis",
+              axis = "x"
+            ),
                       formatter = htmlwidgets::JS("
-                                        function(params){
-                                        return('<span><strong> Período: ' + params.data.extra.Periodo + '</span></strong>' +
-                                        '<br />Alimento: ' + params.data.extra.Alimentos)   }  ")
+                                         function(params){
+        return('Período: ' + params.data.extra.Periodo + 
+               '<br />Alimento: ' + params.data.extra.Alimentos)
+      }
+                                                  
+                                                  ")
             )|>
+            e_legend_unselect("Tresiba") |>
+            e_legend_unselect("Gramas_Carbo") |>
             
           e_title("Insulina Aplicada & \n Carboidratos ingeridos")
         })
