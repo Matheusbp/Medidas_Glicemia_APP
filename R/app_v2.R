@@ -165,9 +165,18 @@ server <- function(input, output, session) {
           e_area(data = df_glicemia, Glicemia) |>
           e_mark_line(data = list(xAxis = df_glicemia$DataHora |> unique())) |>
           e_labels() |>
+          # e_tooltip(trigger = "axis") |>
+          e_add_nested('extra', Periodo) |>
           e_mark_line(data = list(yAxis = 120), title = "Meta") |>
           e_mark_line(data = list(yAxis = 60), title = "Hipo") |>
-                e_title("Glicemia")
+          e_title("Glicemia") |>
+            e_tooltip(
+              formatter = htmlwidgets::JS(
+                'function(params){
+        return "<span><strong> Período: " + params.data.extra.Periodo + "</span></strong>";
+      }'
+              )
+            )
             
               # e_datazoom(x_index = c(0, 1)) # add data zoom for for x axis
 
@@ -177,11 +186,21 @@ server <- function(input, output, session) {
         e_charts(df_insulina, DataHora) |>
           e_bar(data = df_insulina, Humalog) |>
             e_labels() |>
-            e_bar(data = df_insulina, Tresiba) |>
+            e_bar(serie =  Tresiba) |>
             e_legend_unselect("Tresiba") |>
-            e_bar(data = df_insulina, Gramas_Carbo) |>
+            e_bar(serie = Gramas_Carbo) |>
             e_legend_unselect("Gramas_Carbo") |>
-
+            e_tooltip(trigger = "axis") |>
+            # e_theme("bee-inspired")|>
+            e_add_nested('extra', Periodo) |>
+            e_add_nested('extra', Alimentos) |>
+            e_tooltip(
+                      formatter = htmlwidgets::JS("
+                                        function(params){
+                                        return('<span><strong> Período: ' + params.data.extra.Periodo + '</span></strong>' +
+                                        '<br />Alimento: ' + params.data.extra.Alimentos)   }  ")
+            )|>
+            
           e_title("Insulina Aplicada & \n Carboidratos ingeridos")
         })
     })
@@ -189,3 +208,14 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
+mtcars %>%  
+  tibble::rownames_to_column("model") %>% 
+  e_charts(wt) %>% 
+  e_scatter(mpg, qsec, bind=model) %>% # pass qsec as size
+  e_tooltip(formatter = htmlwidgets::JS("
+                                        function(params){
+                                        return('<strong>' + params.name + 
+                                        '</strong><br />wt: ' + params.value[0] + 
+                                        '<br />mpg: ' +  params.value[1] +
+                                        '<br />qsec: ' +  params.value[2] )   }  ")) # size = third value
