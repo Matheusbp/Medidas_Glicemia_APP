@@ -1,0 +1,4 @@
+mano, aqui vc precisa tirar o .prod que da merda
+
+
+e tirar o nome do app que tamo gerando do renv.lock

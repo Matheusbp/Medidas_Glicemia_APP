@@ -16,7 +16,7 @@
 ## Dependencies ----
 ## Amend DESCRIPTION with dependencies read from package code parsing
 ## install.packages('attachment') # if needed.
-# renv::restore() #volta ao estado anterior
+renv::restore() #volta ao estado anterior
 # renv::install("attachment")
 # renv::install(packages = "./deploy/MedidasGlicemia_0.0.0.9000.tar.gz")
 renv::snapshot() # aqui eu instalei o que precisa e ai salva

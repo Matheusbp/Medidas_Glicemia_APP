@@ -20,7 +20,20 @@ app_ui <- function(request) {
     # Your application UI logic
     
     # Put them together into a dashboardPage
-    
+
+  #pegando tabela com pacote gsheet
+  url<- construct_download_url(url = 'https://docs.google.com/spreadsheets/d/1QqYHWXl4KzhZmHQyzddeWCT6yXC9aHMtYOmPGV-nzEw/edit?usp=sharing', format = "csv", sheetid = NULL)
+  
+  tabela <- gsheet2tbl(url, sheetid = NULL) |> tibble()
+  
+  
+  tabela$Glicemia <- tabela$Glicemia |> as.numeric()
+  tabela$Gramas_Carbo <- tabela$Gramas_Carbo |> as.numeric()
+  
+  tabela$Hora <- format(as.POSIXct(tabela$Hora), format = "%H:%M")
+  tabela$DataHora = as.POSIXct(paste(tabela$Dia, tabela$Hora), format = "%d/%m/%Y %H:%M")
+  
+  
   sidebar <- dashboardSidebar(
     sidebarMenu(
       dateRangeInput('daterange',
