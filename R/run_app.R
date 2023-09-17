@@ -14,15 +14,6 @@ run_app <- function(
   uiPattern = "/",
   ...
 ) {
-  library('shiny')
-  library("tidyverse")
-  library("lubridate")
-  library("shinyTime")
-  library("gsheet")
-  library("scales")
-  library("shinyWidgets")
-  library("echarts4r")
-  library("shinydashboard")
   with_golem_options(
     app = shinyApp(
       ui = app_ui,
