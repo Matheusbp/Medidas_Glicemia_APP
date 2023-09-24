@@ -5,6 +5,10 @@
 #' @import shiny
 #' @noRd
 app_server <- function(input, output, session) {
+  
+  FAZER O ECHARTS COM DADOS DE OUTRAS COLUNAS 
+  https://www.youtube.com/watch?v=my88ERFUPl8
+  
   library('shiny')
   library("tidyverse")
   library("lubridate")
