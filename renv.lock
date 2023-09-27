@@ -58,19 +58,6 @@
       ],
       "Hash": "4006dffe49958d2dd591c17e61e60591"
     },
-    "MedidasGlicemia": {
-      "Package": "MedidasGlicemia",
-      "Version": "0.0.0.9000",
-      "Source": "Local",
-      "RemoteType": "local",
-      "RemoteUrl": "C:\\Users\\mathe\\OneDrive\\Documents\\Coding\\projects\\Medidas_Glicemia_APP\\deploy\\MedidasGlicemia_0.0.0.9000.tar.gz",
-      "Requirements": [
-        "config",
-        "golem",
-        "shiny"
-      ],
-      "Hash": "44e25575936b24858dc3c280b10f35e9"
-    },
     "R6": {
       "Package": "R6",
       "Version": "2.5.1",
@@ -345,13 +332,6 @@
         "rlang"
       ],
       "Hash": "bb097fccb22d156624fd07cd2894ddb6"
-    },
-    "corrplot": {
-      "Package": "corrplot",
-      "Version": "0.92",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "fcf11a91936fd5047b2ee9bc00595e36"
     },
     "countrycode": {
       "Package": "countrycode",
