@@ -36,48 +36,60 @@ app_ui <- function(request) {
   
   sidebar <- dashboardSidebar(
     sidebarMenu(
+      menuItem("Gráficos", tabName = "graficos"),
+      menuItem("Tabela", tabName = "tabela")
+    ),
       dateRangeInput('daterange',
                      label = paste("Escolha o período para ter os dados"),
                      start = Sys.Date()-7, end = Sys.Date()+1,
                      min = "20/07/2023", max = Sys.Date()+1,
-                     separator = " - ", format = "dd/mm/yyyy", 
+                     separator = " - ", format = "dd/mm/yyyy",
                      language = "pt"
       ),
       pickerInput(
         inputId = "periodo",
-        label = "Escolha o período de análise", 
+        label = "Escolha o período de análise",
         choices = c("Todos", unique(tabela$Periodo)),
         selected = "Todos",
         options = list(
           title = "This is a placeholder")
       )
     )
-  )
+  
+
+  body <- shinydashboard::dashboardBody(
     
-    body <- shinydashboard::dashboardBody(
-      
-      fluidRow(
-        # Dynamic valueBoxes
-        shinydashboard::valueBoxOutput("mean_medida"),#, icon = icon("fa-solid fa-align-center")),
-        shinydashboard::valueBoxOutput("max_medida"),#, icon = icon("fa-solid fa-arrow-up-long")),
-        shinydashboard::valueBoxOutput("min_medida")#, icon = icon("fa-solid fa-arrow-down-long"))
+    tabItems(
+      tabItem("graficos",
+              fluidRow(
+                # Dynamic valueBoxes
+                shinydashboard::valueBoxOutput("mean_medida"),#, icon = icon("fa-solid fa-align-center")),
+                shinydashboard::valueBoxOutput("max_medida"),#, icon = icon("fa-solid fa-arrow-up-long")),
+                shinydashboard::valueBoxOutput("min_medida")#, icon = icon("fa-solid fa-arrow-down-long"))
+              ),
+              
+              fluidRow(
+                
+                echarts4r::echarts4rOutput("plot_medidas"),
+                echarts4r::echarts4rOutput("plot_insulinas")
+                # echarts4rOutput("plot_ambos")
+                
+              )
       ),
-      
-      fluidRow(
-        
-        echarts4r::echarts4rOutput("plot_medidas"),
-        echarts4r::echarts4rOutput("plot_insulinas")
-        # echarts4rOutput("plot_ambos")
-        
+      tabItem("tabela",
+              fluidRow(
+                dataTableOutput("tabelaDT")
+              )
       )
     )
+  )
     
-    ui <- dashboardPage(
-      dashboardHeader(title = "Medidas App"),
-      sidebar = sidebar,
-      body = body, 
-      title = "Glicemia Matheus"
-    )
+  ui <- dashboardPage(
+       dashboardHeader(title = "Medidas App"),
+       sidebar = sidebar,
+       body = body, 
+       title = "Glicemia Matheus"
+     )
 }
   
 
