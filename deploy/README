@@ -1,8 +1,4 @@
 docker build -f Dockerfile_base --progress=plain -t medidasglicemia_base .
-docker build -f Dockerfile_old --progress=plain -t medidasglicemia:latest .
-docker run -p 3839:3839 medidasglicemia:latest
-# then go to 127.0.0.1:3839
-
-#Ou com dockerfile único
 docker build -f Dockerfile --progress=plain -t medidasglicemia:latest .
-docker run -d -p 3839:3839 medidasglicemia:latest
+docker run -p 80:80 medidasglicemia:latest
+# then go to 127.0.0.1:80
